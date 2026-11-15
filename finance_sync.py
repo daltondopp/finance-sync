@@ -77,6 +77,13 @@ def access_url() -> str | None:
     if not token:
         print("Waiting for setup: add a SIMPLEFIN_SETUP_TOKEN secret, then re-run this workflow.")
         return None
+    # Make sure we can write before spending the single-use token
+    try:
+        sb_upsert("finance_config", [{"key": "write_check", "value": "ok",
+                                      "updated_at": datetime.now(timezone.utc).isoformat()}], "key")
+    except RuntimeError as e:
+        sys.exit("Can't write to Supabase, so the setup token was NOT used. SUPABASE_SERVICE_KEY must be "
+                 f"the service_role key (not anon/publishable). Details: {e}")
     claim_url = base64.b64decode(token + "=" * (-len(token) % 4)).decode().strip()
     r = requests.post(claim_url, headers={"Content-Length": "0"}, timeout=30)
     if r.status_code != 200:
