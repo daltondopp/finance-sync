@@ -27,7 +27,7 @@ import requests
 
 TZ = ZoneInfo(os.getenv("TZ_NAME", "America/Denver"))
 SYNC_DAYS = int(os.getenv("FINANCE_SYNC_DAYS") or "14")
-CHUNK_DAYS = 60  # SimpleFIN caps how wide one request's date range can be
+CHUNK_DAYS = 45  # SimpleFIN recommends <=45 days per request
 SUPABASE_URL = os.environ["SUPABASE_URL"].rstrip("/")
 SUPABASE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
 HDRS = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}", "Content-Type": "application/json"}
