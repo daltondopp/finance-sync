@@ -1,0 +1,33 @@
+name: Daily finance sync
+
+on:
+  schedule:
+    # 13:47 UTC = 6:47 AM Mountain (standard time)
+    - cron: "47 13 * * *"
+  push:
+    branches: [main]
+    paths: ["finance_sync.py", ".github/workflows/finance_sync.yml"]
+  workflow_dispatch:
+    inputs:
+      sync_days:
+        description: "Days of transactions to pull (up to 90 for a backfill)"
+        default: "14"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python finance_sync.py
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SIMPLEFIN_SETUP_TOKEN: ${{ secrets.SIMPLEFIN_SETUP_TOKEN }}
+          TZ_NAME: America/Denver
+          FINANCE_SYNC_DAYS: ${{ github.event.inputs.sync_days || (github.event_name == 'push' && '90') || '14' }}
